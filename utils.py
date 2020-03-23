@@ -1,6 +1,7 @@
 import os
 import sys
 import curses
+from curses import textpad
 
 class File:
     def __init__(self, name):
@@ -12,37 +13,34 @@ class File:
     def traverse(self): 
         yield self, 0
 
-    def open(self):
+    def open(self, stdscr):
         curses.endwin()
-        os.system('nvim {}'.format(self.name))
+        os.system('$EDITOR {}'.format(self.name))
 
-    def delete(self):
-        #TODO screen is not updating after delete command
+    def delete(self, stdscr):
         os.system('rm {}'.format(self.name))
 
-    def rename(self):
-        pass
-        # new_name = 'New name'
-        # os.system('mv {} {}'.format(self.name, new_name))
+    def rename(self, stdscr):
+        new_name = user_input(stdscr, "Please, enter a new name") 
+        os.rename(self.name, '{}/{}'.format(os.path.dirname(self.name), new_name))
+        self.name = '{}/{}'.format(os.path.dirname(self.name), new_name)
 
-    def move(self):
-        pass
-        # new_place = ''
-        # os.system('mv {} {}'.format(self.name, new_place))
+    def move(self, stdscr):
+        new_place = user_input(stdscr, "Please, enter a path")
+        os.system('mv {} {}'.format(self.name, new_place))
 
-    def copy(self):
-        pass
-        # new_place = ''
-        # os.system('cp {} {}'.format(self.name, new_place))
+    def copy(self, stdscr):
+        new_place = user_input(stdscr, "Please, enter a path")
+        os.system('cp {} {}'.format(self.name, new_place))
 
-    def collapse(self): 
+    def collapse(self, stdscr): 
         pass
 
 class Dir(File):
     def __init__(self, name):
         File.__init__(self, name)
         self.kids = {k:v for k,v in zip(sorted(os.listdir(name)),
-            [dir_or_file(os.path.join(self.name, kid)) for kid in sorted(os.listdir(name))] )}
+            [dir_or_file(os.path.join(self.name, kid)) for kid in sorted(os.listdir(name))])}
         self.opened = False
 
     def render(self, depth, width):
@@ -56,28 +54,26 @@ class Dir(File):
         else:
             return '[+]'
 
-    def open(self): 
+    def open(self, stdscr): 
         self.opened = True
 
-    def delete(self):
+    def delete(self, stdscr):
         os.system('rm -rf {}'.format(self.name))
 
-    def rename(self):
-        pass
-        # new_name = 'New name'
-        # os.system('mv {} {}'.format(self.name, new_name))
+    def rename(self, stdscr):
+        new_name = user_input(stdscr, "Please, enter a new name") 
+        os.rename(self.name, '{}/{}'.format(os.path.dirname(self.name), new_name))
+        self.name = '{}/{}'.format(os.path.dirname(self.name), new_name)
 
-    def move(self):
-        pass
-        # new_place = ''
-        # os.system('mv {} {}'.format(self.name, new_place))
+    def move(self, stdscr):
+        new_place = user_input(stdscr, "Please, enter a path")
+        os.system('mv {} {}'.format(self.name, new_place))
 
-    def copy(self):
-        pass
-        # new_place = ''
-        # os.system('cp {} {}'.format(self.name, new_place))
+    def copy(self, stdscr):
+        new_place = user_input(stdscr, "Please, enter a path")
+        os.system('cp {} {}'.format(self.name, new_place))
         
-    def collapse(self): 
+    def collapse(self, stdscr): 
         self.opened = False
 
     def traverse(self):
@@ -93,6 +89,18 @@ def dir_or_file(name):
         return Dir(name)
     else: 
         return File(name)
+
+# TODO: cancel input
+def user_input(stdscr, help_msg):
+    curses.endwin()
+    height, width = stdscr.getmaxyx()
+    inp = curses.newwin(height, width, 0,0)
+    inp.attron(curses.color_pair(1))
+    inp.addstr(1,1, help_msg)
+    sub = inp.subwin(height-3, width-1, 3, 1)
+    inp.refresh()
+    tb = curses.textpad.Textbox(sub, insert_mode=True)
+    return str(tb.edit().rstrip())
 
 def screen_routine(win):
     win.clear()
@@ -115,14 +123,20 @@ def process_files(stdscr, item):
         stdscr.clear()
         height, width = stdscr.getmaxyx()
         line = 0
-
-        for data, depth in item.traverse():
+        
+        # To avoid errors when deleting an item during iteration, list() is used
+        # TODO: Is there more elegant way to do this?
+        for data, depth in list(item.traverse()):
             if line == curidx:
                 stdscr.attrset(curses.color_pair(1) | curses.A_BOLD)
                 if pending_action:
-                    getattr(data, pending_action)()
-                    pending_action = None
-                    stdscr.refresh()
+                    getattr(data, pending_action)(stdscr)
+                    if(pending_action == 'delete' or pending_action == 'move'):
+                        del item.kids[os.path.basename(data.name)]
+                        pending_action = None
+                        continue
+                    else: 
+                        pending_action = None
             else:
                 stdscr.attrset(curses.color_pair(1))
             stdscr.addstr(line, 0, data.render(depth, width))
@@ -157,4 +171,5 @@ def process_files(stdscr, item):
                 curidx = line - 1
         elif ch == ord('q'):
             return
+
         curidx %= line
