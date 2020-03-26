@@ -39,8 +39,7 @@ class File:
 class Dir(File):
     def __init__(self, name):
         File.__init__(self, name)
-        self.kids = {k:v for k,v in zip(sorted(os.listdir(name)),
-            [dir_or_file(os.path.join(self.name, kid)) for kid in sorted(os.listdir(name))])}
+        self.kids = [dir_or_file(os.path.join(self.name, kid)) for kid in sorted(os.listdir(name))]
         self.opened = False
 
     def render(self, depth, width):
@@ -49,7 +48,7 @@ class Dir(File):
     def icon(self):
         if self.opened:
             return '[-]'
-        elif self.kids.keys() is None:
+        elif self.kids is None:
             return '[?]'
         else:
             return '[+]'
@@ -80,7 +79,7 @@ class Dir(File):
         yield self, 0
         if not self.opened:
             return
-        for child in self.kids.values():
+        for child in self.kids:
             for kid, depth in child.traverse():
                 yield kid, depth + 1
 
@@ -90,14 +89,15 @@ def dir_or_file(name):
     else: 
         return File(name)
 
-# TODO: cancel input
 def user_input(stdscr, help_msg):
     curses.endwin()
     height, width = stdscr.getmaxyx()
     inp = curses.newwin(height, width, 0,0)
     inp.attron(curses.color_pair(1))
+    curses.curs_set(1)
+
     inp.addstr(1,1, help_msg)
-    sub = inp.subwin(height-3, width-1, 3, 1)
+    sub = inp.subwin(1, width-1, 3, 1)
     inp.refresh()
     tb = curses.textpad.Textbox(sub, insert_mode=True)
     return str(tb.edit().rstrip())
@@ -116,23 +116,24 @@ def init_colors():
     curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_GREEN)
 
 def process_files(stdscr, item):
-    curidx = 0 # cursor's line number
+    curidx = 0 # cursor line number
     pending_action = None
+    ignore = []
 
     while True:
         stdscr.clear()
         height, width = stdscr.getmaxyx()
         line = 0
-        
-        # To avoid errors when deleting an item during iteration, list() is used
-        # TODO: Is there more elegant way to do this?
-        for data, depth in list(item.traverse()):
+
+        for data, depth in item.traverse():
+            if data.name in ignore:
+                continue
             if line == curidx:
                 stdscr.attrset(curses.color_pair(1) | curses.A_BOLD)
                 if pending_action:
                     getattr(data, pending_action)(stdscr)
                     if(pending_action == 'delete' or pending_action == 'move'):
-                        del item.kids[os.path.basename(data.name)]
+                        ignore.append(data.name)
                         pending_action = None
                         continue
                     else: 
@@ -153,22 +154,14 @@ def process_files(stdscr, item):
             pending_action = 'open'
         elif ch == curses.KEY_LEFT:
             pending_action = 'collapse'
-        elif ch == ord('d'):
-            pending_action = 'delete'
-        elif ch == ord('r'):
-            pending_action = 'rename'
         elif ch == ord('c'):
             pending_action = 'copy'
+        elif ch == ord('d'):
+            pending_action = 'delete'
         elif ch == ord('m'):
             pending_action = 'move'
-        elif ch == curses.KEY_PPAGE:
-            curidx -= height
-            if curidx < 0:
-                curidx = 0
-        elif ch == curses.KEY_NPAGE:
-            curidx += height
-            if curidx >= line: 
-                curidx = line - 1
+        elif ch == ord('r'):
+            pending_action = 'rename'
         elif ch == ord('q'):
             return
 
