@@ -2,6 +2,7 @@
 from utils import *
 
 #TODO status bar?
+#TODO new file
 
 def main(stdscr):
     init_colors()
@@ -12,6 +13,7 @@ def main(stdscr):
 
     item = Dir(start_dir)
     item.open(stdscr)
+    
     process_files(stdscr, item)
 
 if __name__ == '__main__':
