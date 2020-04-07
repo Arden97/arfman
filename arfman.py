@@ -2,7 +2,7 @@
 from utils import *
 
 #TODO status bar?
-#TODO new file
+#TODO new dir error
 
 def main(stdscr):
     init_colors()
@@ -17,4 +17,4 @@ def main(stdscr):
     process_files(stdscr, item)
 
 if __name__ == '__main__':
-    curses.wrapper(main) 
+    curses.wrapper(main)
