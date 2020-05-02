@@ -5,9 +5,9 @@ class File:
         self.name = name
 
     def render(self, depth, width):
-        return '{}{}'.format('   '*depth, os.path.basename(self.name))
+        return '{}{}'.format(' '*depth, os.path.basename(self.name))
 
-    def traverse(self): 
+    def traverse(self):
         yield self, 0
 
     def open(self, stdscr):
@@ -18,7 +18,7 @@ class File:
         os.system('rm {}'.format(self.name))
 
     def rename(self, stdscr):
-        new_name = user_input(stdscr, "Please, enter a new name") 
+        new_name = user_input(stdscr, "Please, enter a new name")
         os.rename(self.name, '{}/{}'.format(os.path.dirname(self.name), new_name))
         self.name = '{}/{}'.format(os.path.dirname(self.name), new_name)
 
@@ -30,7 +30,7 @@ class File:
         new_place = user_input(stdscr, "Please, enter a path")
         os.system('cp {} {}'.format(self.name, new_place))
 
-    def collapse(self, stdscr): 
+    def collapse(self, stdscr):
         pass
 
 class Dir(File):
@@ -40,7 +40,7 @@ class Dir(File):
         self.opened = False
 
     def render(self, depth, width):
-        return '{}{}{}'.format('   '*depth, self.icon(), os.path.basename(self.name))
+        return '{}{}{}'.format(' '*depth, self.icon(), os.path.basename(self.name))
 
     def icon(self):
         if self.opened:
@@ -50,14 +50,14 @@ class Dir(File):
         else:
             return '[+]'
 
-    def open(self, stdscr): 
+    def open(self, stdscr):
         self.opened = True
 
     def delete(self, stdscr):
         os.system('rm -rf {}'.format(self.name))
 
     def rename(self, stdscr):
-        new_name = user_input(stdscr, "Please, enter a new name") 
+        new_name = user_input(stdscr, "Please, enter a new name")
         os.rename(self.name, '{}/{}'.format(os.path.dirname(self.name), new_name))
         self.name = '{}/{}'.format(os.path.dirname(self.name), new_name)
 
@@ -68,8 +68,8 @@ class Dir(File):
     def copy(self, stdscr):
         new_place = user_input(stdscr, "Please, enter a path")
         os.system('cp {} {}'.format(self.name, new_place))
-        
-    def collapse(self, stdscr): 
+
+    def collapse(self, stdscr):
         self.opened = False
 
     def traverse(self):
@@ -80,11 +80,10 @@ class Dir(File):
             for kid, depth in child.traverse():
                 yield kid, depth + 1
 
-
 def dir_or_file(name):
-    if os.path.isdir(name): 
+    if os.path.isdir(name):
         return Dir(name)
-    else: 
+    else:
         return File(name)
 
 def user_input(stdscr, help_msg):

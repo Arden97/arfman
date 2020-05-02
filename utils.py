@@ -4,12 +4,34 @@ import curses
 from curses import textpad
 from classes import File, Dir, dir_or_file, user_input
 
+def help(stdscr):
+    curses.endwin()
+    height, width = stdscr.getmaxyx()
+    win = curses.newwin(height, width, 0,0)
+    win.attron(curses.color_pair(1))
+    curses.curs_set(0)
+
+    while True:
+        win.addstr(0,1, "[UP_ARROW][DOWN_ARROW] - navigation")
+        win.addstr(1,1, "[LEFT_ARROW][RIGHT_ARROW] - collapse/open")
+        win.addstr(2,1, "[c] - copy")
+        win.addstr(3,1, "[d] - delete")
+        win.addstr(4,1, "[m] - move")
+        win.addstr(5,1, "[r] - rename")
+        win.addstr(6,1, "[n] - new file")
+        win.addstr(7,1, "[d] - new directory")
+        win.addstr(8,1, "[g]- go to directory")
+        win.addstr(9,1, "[q] - quit")
+        win.addstr(11,1, "PRESS q TO GO BACK")
+        win.refresh()
+        if stdscr.getch() == ord('q'):
+            return
+
 def screen_routine(win):
     win.clear()
     win.refresh()
     curses.nl()
     curses.noecho()
-    curses.curs_set(0)
     win.timeout(0)
     win.nodelay(0)
 
@@ -36,11 +58,12 @@ def go_to_dir(stdscr):
 def process_files(stdscr, item):
     curidx = 0 # cursor line number
     pending_action = None
+    curses.curs_set(0)
     ignore = []
 
     while True:
         stdscr.clear()
-        height, width = stdscr.getmaxyx()
+        _, width = stdscr.getmaxyx()
         line = 0
 
         for data, depth in item.traverse():
@@ -86,6 +109,9 @@ def process_files(stdscr, item):
             new_dir(item, stdscr)
         elif ch == ord('g'):
             item = go_to_dir(stdscr)
+            item.open(stdscr)
+        elif ch == ord('h'):
+            help(stdscr)
         elif ch == ord('q'):
             return
 

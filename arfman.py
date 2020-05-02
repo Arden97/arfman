@@ -1,7 +1,8 @@
 #!/usr/bin/python
 from utils import *
 
-#TODO status bar?
+#TODO goto autofill ?
+#TODO forbid root removal
 #TODO new dir error
 
 def main(stdscr):
@@ -13,7 +14,7 @@ def main(stdscr):
 
     item = Dir(start_dir)
     item.open(stdscr)
-    
+
     process_files(stdscr, item)
 
 if __name__ == '__main__':
