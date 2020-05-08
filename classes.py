@@ -1,4 +1,5 @@
 from utils import os, curses
+import shutil
 
 class File:
     def __init__(self, name):
@@ -15,7 +16,7 @@ class File:
         os.system('$EDITOR {}'.format(self.name))
 
     def delete(self, stdscr):
-        os.system('rm {}'.format(self.name))
+        os.remove(self.name)
 
     def rename(self, stdscr):
         new_name = user_input(stdscr, "Please, enter a new name")
@@ -24,11 +25,11 @@ class File:
 
     def move(self, stdscr):
         new_place = user_input(stdscr, "Please, enter a path")
-        os.system('mv {} {}'.format(self.name, new_place))
+        shutil.move(self.name, new_place)
 
     def copy(self, stdscr):
         new_place = user_input(stdscr, "Please, enter a path")
-        os.system('cp {} {}'.format(self.name, new_place))
+        shutil.copyfile(self.name, new_place)
 
     def collapse(self, stdscr):
         pass
@@ -54,7 +55,7 @@ class Dir(File):
         self.opened = True
 
     def delete(self, stdscr):
-        os.system('rm -rf {}'.format(self.name))
+        shutil.rmtree(self.name)
 
     def rename(self, stdscr):
         new_name = user_input(stdscr, "Please, enter a new name")
@@ -63,11 +64,11 @@ class Dir(File):
 
     def move(self, stdscr):
         new_place = user_input(stdscr, "Please, enter a path")
-        os.system('mv {} {}'.format(self.name, new_place))
+        shutil.move(self.name, new_place)
 
     def copy(self, stdscr):
         new_place = user_input(stdscr, "Please, enter a path")
-        os.system('cp {} {}'.format(self.name, new_place))
+        shutil.copyfile(self.name, new_place)
 
     def collapse(self, stdscr):
         self.opened = False

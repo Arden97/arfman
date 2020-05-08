@@ -12,17 +12,17 @@ def help(stdscr):
     curses.curs_set(0)
 
     while True:
-        win.addstr(0,1, "[UP_ARROW][DOWN_ARROW] - navigation")
-        win.addstr(1,1, "[LEFT_ARROW][RIGHT_ARROW] - collapse/open")
-        win.addstr(2,1, "[c] - copy")
-        win.addstr(3,1, "[d] - delete")
-        win.addstr(4,1, "[m] - move")
-        win.addstr(5,1, "[r] - rename")
-        win.addstr(6,1, "[n] - new file")
-        win.addstr(7,1, "[d] - new directory")
-        win.addstr(8,1, "[g]- go to directory")
-        win.addstr(9,1, "[q] - quit")
-        win.addstr(11,1, "PRESS q TO GO BACK")
+        win.addstr(0,0, "[UP_ARROW][DOWN_ARROW] - navigation")
+        win.addstr(1,0, "[LEFT_ARROW][RIGHT_ARROW] - collapse/open")
+        win.addstr(2,0, "[c] - copy")
+        win.addstr(3,0, "[d] - delete")
+        win.addstr(4,0, "[m] - move")
+        win.addstr(5,0, "[r] - rename")
+        win.addstr(6,0, "[n] - new file")
+        win.addstr(7,0, "[d] - new directory")
+        win.addstr(8,0, "[g]- go to directory")
+        win.addstr(9,0, "[q] - quit")
+        win.addstr(11,0, "PRESS q TO GO BACK")
         win.refresh()
         if stdscr.getch() == ord('q'):
             return
@@ -36,44 +36,43 @@ def screen_routine(win):
     win.nodelay(0)
 
 def init_colors():
-    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
-    curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_GREEN)
+    curses.use_default_colors()
+    curses.init_pair(1, curses.COLOR_GREEN, -1)
 
-def new_file(item, stdscr):
+def new_file(root, stdscr):
     name = user_input(stdscr, "Please, enter a new file name")
-    item.kids.append(File(name))
-    item.kids = sorted(item.kids)
+    root.kids.append(File(name))
+    root.kids = sorted(root.kids)
     os.system('touch {}'.format(name))
 
-def new_dir(item, stdscr):
+def new_dir(root, stdscr):
     name = user_input(stdscr, "Please, enter a new folder name")
     os.system('mkdir {}'.format(name))
-    item.kids.append(Dir(name))
-    item.kids = sorted(item.kids)
+    root.kids.append(Dir(name))
 
 def go_to_dir(stdscr):
-    path = user_input(stdscr, "Please, enter a new place path")
+    path = user_input(stdscr, "Please, enter a path")
     return Dir(path)
 
-def process_files(stdscr, item):
+def process_files(stdscr, root):
     curidx = 0 # cursor line number
     pending_action = None
-    curses.curs_set(0)
     ignore = []
 
     while True:
+        curses.curs_set(0)
         stdscr.clear()
         _, width = stdscr.getmaxyx()
         line = 0
 
-        for data, depth in item.traverse():
+        for data, depth in root.traverse():
             if data.name in ignore:
                 continue
             if line == curidx:
                 stdscr.attrset(curses.color_pair(1) | curses.A_BOLD)
                 if pending_action:
                     getattr(data, pending_action)(stdscr)
-                    if(pending_action == 'delete' or pending_action == 'move'):
+                    if pending_action == 'delete' or pending_action == 'move':
                         ignore.append(data.name)
                         pending_action = None
                         continue
@@ -84,6 +83,7 @@ def process_files(stdscr, item):
             stdscr.addstr(line, 0, data.render(depth, width))
             line += 1
 
+        # stdscr.addstr(line+1, 0, "Press h for help.")
         stdscr.refresh()
 
         ch = stdscr.getch()
@@ -98,18 +98,20 @@ def process_files(stdscr, item):
         elif ch == ord('c'):
             pending_action = 'copy'
         elif ch == ord('d'):
+            if curidx == 0: # ignore root of tree
+                continue
             pending_action = 'delete'
         elif ch == ord('m'):
             pending_action = 'move'
         elif ch == ord('r'):
             pending_action = 'rename'
         elif ch == ord('n'):
-            new_file(item, stdscr)
+            new_file(root, stdscr)
         elif ch == ord('f'):
-            new_dir(item, stdscr)
+            new_dir(root, stdscr)
         elif ch == ord('g'):
-            item = go_to_dir(stdscr)
-            item.open(stdscr)
+            root = go_to_dir(stdscr)
+            root.open(stdscr)
         elif ch == ord('h'):
             help(stdscr)
         elif ch == ord('q'):

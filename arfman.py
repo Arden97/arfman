@@ -2,8 +2,10 @@
 from utils import *
 
 #TODO goto autofill ?
-#TODO forbid root removal
-#TODO new dir error
+#TODO sort files?
+#TODO show/hide dotfiles
+#TODO replace
+#TODO copy directory
 
 def main(stdscr):
     init_colors()
@@ -12,10 +14,10 @@ def main(stdscr):
     if len(sys.argv) > 1:
         start_dir = sys.argv[1]
 
-    item = Dir(start_dir)
-    item.open(stdscr)
+    root = Dir(start_dir)
+    root.open(stdscr)
 
-    process_files(stdscr, item)
+    process_files(stdscr, root)
 
 if __name__ == '__main__':
     curses.wrapper(main)
