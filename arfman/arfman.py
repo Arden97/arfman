@@ -13,10 +13,8 @@ def main(stdscr):
     start_dir = os.getcwd()
     if len(sys.argv) > 1:
         start_dir = sys.argv[1]
-
     root = Dir(start_dir)
     root.open(stdscr)
-
     process_files(stdscr, root)
 
 if __name__ == '__main__':

@@ -1,8 +1,6 @@
-import os
 import sys
-import curses
+from classes import *
 from curses import textpad
-from classes import File, Dir, dir_or_file, user_input
 
 def help(stdscr):
     curses.endwin()
