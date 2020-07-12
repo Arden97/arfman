@@ -1,5 +1,5 @@
 import sys
-from classes import *
+from .classes import *
 from curses import textpad
 
 def help(stdscr):
@@ -25,15 +25,25 @@ def help(stdscr):
         if stdscr.getch() == ord('q'):
             return
 
-def screen_routine(win):
-    win.clear()
-    win.refresh()
-    curses.nl()
+def init_screen():
+    scr = curses.initscr()
+    curses.cbreak()
     curses.noecho()
-    win.timeout(0)
-    win.nodelay(0)
+    scr.keypad(1)
+    scr.clear()
+    scr.refresh()
+    scr.timeout(0)
+    scr.nodelay(0)
+    return scr
+
+def end_screen(scr):
+    scr.keypad(False)
+    curses.nocbreak()
+    curses.echo()
+    curses.endwin()
 
 def init_colors():
+    curses.start_color()
     curses.use_default_colors()
     curses.init_pair(1, curses.COLOR_GREEN, -1)
 

@@ -1,4 +1,5 @@
-import os, curses
+import os
+import curses
 import shutil
 
 class File:

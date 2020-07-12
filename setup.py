@@ -16,10 +16,9 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    scripts=['arfman/arfman.py', 'arfman/classes.py', 'arfman/utils.py'],
     entry_points={
         "console_scripts": [
-            "arfman = arfman:arfman.main"
+            "arfman = arfman:main.main",
         ]
     },
     python_requires='>=3.6',
