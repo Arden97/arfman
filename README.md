@@ -1,6 +1,6 @@
 # Arfman
 
-A CLI tree-like file manager written in Python.
+A CLI tree-like file browser written in Python.
 
 ## Installation
 

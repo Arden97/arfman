@@ -6,9 +6,9 @@ class File:
     def __init__(self, name):
         self.name = name
 
-    def render(self, depth, width):
+    def render(self, depth):
         return '{}{}'.format(' '*depth, os.path.basename(self.name))
-
+    
     def traverse(self):
         yield self, 0
 
@@ -41,7 +41,7 @@ class Dir(File):
         self.kids = [dir_or_file(os.path.join(self.name, kid)) for kid in sorted(os.listdir(name))]
         self.opened = False
 
-    def render(self, depth, width):
+    def render(self, depth):
         return '{}{}{}'.format(' '*depth, self.icon(), os.path.basename(self.name))
 
     def icon(self):

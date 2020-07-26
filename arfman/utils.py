@@ -68,9 +68,10 @@ def process_files(stdscr, root):
     ignore = []
 
     while True:
-        curses.curs_set(0)
         stdscr.clear()
-        _, width = stdscr.getmaxyx()
+        curses.curs_set(0)
+        height, _ = stdscr.getmaxyx()
+        offset = max(0, curidx - height + 3)
         line = 0
 
         for data, depth in root.traverse():
@@ -88,7 +89,9 @@ def process_files(stdscr, root):
                         pending_action = None
             else:
                 stdscr.attrset(curses.color_pair(1))
-            stdscr.addstr(line, 0, data.render(depth, width))
+            # if the number of items is greater than the height of the terminal, do not try to put them on screen
+            if (0 <= line - offset < height - 1):
+                stdscr.addstr(line - offset, 0, data.render(depth))
             line += 1
 
         # stdscr.addstr(line+1, 0, "Press h for help.")
