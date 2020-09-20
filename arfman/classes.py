@@ -21,8 +21,9 @@ class File:
 
     def rename(self, stdscr):
         new_name = user_input(stdscr, "Please, enter a new name")
-        os.rename(self.name, '{}/{}'.format(os.path.dirname(self.name), new_name))
-        self.name = '{}/{}'.format(os.path.dirname(self.name), new_name)
+        new_name = os.path.join(os.path.dirname(self.name), new_name)
+        os.rename(self.name, new_name)
+        self.name = new_name
 
     def move(self, stdscr):
         new_place = user_input(stdscr, "Please, enter a path")
@@ -60,8 +61,9 @@ class Dir(File):
 
     def rename(self, stdscr):
         new_name = user_input(stdscr, "Please, enter a new name")
-        os.rename(self.name, '{}/{}'.format(os.path.dirname(self.name), new_name))
-        self.name = '{}/{}'.format(os.path.dirname(self.name), new_name)
+        new_name = os.path.join(os.path.dirname(self.name), new_name)
+        os.rename(self.name, new_name)
+        self.name = new_name
 
     def move(self, stdscr):
         new_place = user_input(stdscr, "Please, enter a path")
@@ -69,7 +71,8 @@ class Dir(File):
 
     def copy(self, stdscr):
         new_place = user_input(stdscr, "Please, enter a path")
-        shutil.copyfile(self.name, new_place)
+        new_place = os.path.join(new_place, os.path.basename(self.name))
+        shutil.copytree(self.name, new_place)
 
     def collapse(self, stdscr):
         self.opened = False
