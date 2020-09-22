@@ -46,17 +46,21 @@ def init_colors():
     curses.start_color()
     curses.use_default_colors()
     curses.init_pair(1, curses.COLOR_GREEN, -1)
+    curses.init_pair(2, curses.COLOR_WHITE, -1)
 
 def new_file(root, stdscr):
     name = user_input(stdscr, "Please, enter a new file name")
+    file = open(name, "w+")
+    file.close()
     root.kids.append(File(name))
     root.kids = sorted(root.kids)
-    os.system('touch {}'.format(name))
 
 def new_dir(root, stdscr):
-    name = user_input(stdscr, "Please, enter a new folder name")
-    os.system('mkdir {}'.format(name))
-    root.kids.append(Dir(name))
+    dirname = user_input(stdscr, "Please, enter a new folder name")
+    dirname = os.path.join(root.name, dirname)
+    os.mkdir(dirname)
+    root.kids.append(Dir(dirname))
+    root.kids = sorted(root.kids)
 
 def go_to_dir(stdscr):
     path = user_input(stdscr, "Please, enter a path")
@@ -65,6 +69,7 @@ def go_to_dir(stdscr):
 def process_files(stdscr, root):
     curidx = 0 # cursor line number
     pending_action = None
+    hidden = False
     ignore = []
 
     while True:
@@ -75,14 +80,15 @@ def process_files(stdscr, root):
         line = 0
 
         for data, depth in root.traverse():
-            if data.name in ignore:
+            filename = os.path.basename(data.name)
+            if (filename in ignore) or (filename.startswith('.') and hidden):
                 continue
             if line == curidx:
-                stdscr.attrset(curses.color_pair(1) | curses.A_BOLD)
+                stdscr.attrset(curses.color_pair(2) | curses.A_BOLD)
                 if pending_action:
                     getattr(data, pending_action)(stdscr)
                     if pending_action == 'delete' or pending_action == 'move':
-                        ignore.append(data.name)
+                        ignore.append(filename)
                         pending_action = None
                         continue
                     else: 
@@ -125,6 +131,11 @@ def process_files(stdscr, root):
             root.open(stdscr)
         elif ch == ord('h'):
             help(stdscr)
+        elif ch == ord('s'):
+            if hidden == False:
+                hidden = True
+            else:
+                hidden = False
         elif ch == ord('q'):
             return
 
