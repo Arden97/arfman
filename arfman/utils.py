@@ -1,4 +1,5 @@
 import sys
+import operator
 from .classes import *
 from curses import textpad
 
@@ -49,18 +50,18 @@ def init_colors():
     curses.init_pair(2, curses.COLOR_WHITE, -1)
 
 def new_file(root, stdscr):
-    name = user_input(stdscr, "Please, enter a new file name")
-    file = open(name, "w+")
+    filename = user_input(stdscr, "Please, enter a new file name")
+    file = open(filename, "w+")
     file.close()
-    root.kids.append(File(name))
-    root.kids = sorted(root.kids)
+    root.kids.append(File(filename))
+    root.kids.sort(key=lambda kid: kid.name.lower())
 
 def new_dir(root, stdscr):
     dirname = user_input(stdscr, "Please, enter a new folder name")
     dirname = os.path.join(root.name, dirname)
     os.mkdir(dirname)
     root.kids.append(Dir(dirname))
-    root.kids = sorted(root.kids)
+    root.kids.sort(key=lambda kid: kid.name.lower())
 
 def go_to_dir(stdscr):
     path = user_input(stdscr, "Please, enter a path")
@@ -70,7 +71,6 @@ def process_files(stdscr, root):
     curidx = 0 # cursor line number
     pending_action = None
     hidden = False
-    ignore = []
 
     while True:
         stdscr.clear()
@@ -80,21 +80,21 @@ def process_files(stdscr, root):
         line = 0
 
         for data, depth in root.traverse():
-            filename = os.path.basename(data.name)
-            if (filename in ignore) or (filename.startswith('.') and hidden):
+            if os.path.basename(data.name).startswith('.') and hidden:
                 continue
             if line == curidx:
                 stdscr.attrset(curses.color_pair(2) | curses.A_BOLD)
                 if pending_action:
                     getattr(data, pending_action)(stdscr)
                     if pending_action == 'delete' or pending_action == 'move':
-                        ignore.append(filename)
+                        root.kids.remove(data)
                         pending_action = None
                         continue
                     else: 
                         pending_action = None
             else:
                 stdscr.attrset(curses.color_pair(1))
+
             # if the number of items is greater than the height of the terminal, do not try to put them on screen
             if (0 <= line - offset < height - 1):
                 stdscr.addstr(line - offset, 0, data.render(depth))
